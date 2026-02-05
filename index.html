@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<link rel="stylesheet" href="notifications.css">
+<script src="notifications.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NORYXCUBE</title>
@@ -12,7 +16,7 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
-            background: #0b0b13;
+            background: #0d0a1a;
             overflow-x: hidden;
         }
 
@@ -25,14 +29,39 @@
             z-index: -1;
         }
 
-        /* --- НОВОЕ: БОКОВОЕ МЕНЮ --- */
+        /* --- УВЕДОМЛЕНИЕ (TOAST) --- */
+        #copy-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(142, 68, 173, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(187, 134, 252, 0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 2000;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        #copy-toast.show {
+            bottom: 30px;
+        }
+
+        /* --- БОКОВОЕ МЕНЮ --- */
         .menu-btn {
             position: fixed;
             top: 20px;
             left: 40px;
             z-index: 1000;
-            background: rgba(74, 144, 226, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(142, 68, 173, 0.2);
+            border: 1px solid rgba(187, 134, 252, 0.3);
             color: white;
             padding: 12px 15px;
             border-radius: 12px;
@@ -41,31 +70,49 @@
             transition: 0.3s;
         }
 
-        .menu-btn:hover { background: rgba(74, 144, 226, 0.4); transform: scale(1.05); }
+        .menu-btn:hover { background: rgba(142, 68, 173, 0.4); transform: scale(1.05); }
 
         .sidebar {
             position: fixed;
             top: 0;
-            left: -300px; /* Скрыто по умолчанию */
+            left: -300px;
             width: 280px;
             height: 100%;
-            background: rgba(15, 15, 25, 0.95);
+            background: rgba(20, 15, 35, 0.95);
             backdrop-filter: blur(20px);
             z-index: 999;
             transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
             padding: 80px 20px 20px 20px;
             box-shadow: 10px 0 30px rgba(0,0,0,0.5);
-            border-right: 1px solid rgba(74, 144, 226, 0.3);
+            border-right: 1px solid rgba(187, 134, 252, 0.3);
         }
 
         .sidebar.active { left: 0; }
 
         .sidebar h2 {
-            border-bottom: 2px solid #4a90e2;
+            border-bottom: 2px solid #8e44ad;
             padding-bottom: 10px;
             margin-bottom: 20px;
             font-size: 1.5rem;
+            color: #bb86fc;
         }
+
+        .menu-shop-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #8e44ad;
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+            text-align: center;
+            justify-content: center;
+        }
+        .menu-shop-btn:hover { background: #bb86fc; transform: translateY(-2px); }
 
         .creator-item {
             display: flex;
@@ -78,9 +125,8 @@
             transition: 0.3s;
         }
 
-        .creator-item:hover { background: rgba(74, 144, 226, 0.2); }
-
-        .creator-info h4 { margin: 0; color: #4a90e2; }
+        .creator-item:hover { background: rgba(142, 68, 173, 0.2); }
+        .creator-info h4 { margin: 0; color: #bb86fc; }
         .creator-info p { margin: 0; font-size: 0.8rem; opacity: 0.7; }
 
         .overlay {
@@ -93,7 +139,6 @@
             display: none;
             z-index: 998;
         }
-        /* -------------------------- */
 
         .container {
             max-width: 1200px;
@@ -113,9 +158,10 @@
 
         h1 {
             font-size: 5rem;
-            text-shadow: 0 0 30px #4a90e2;
+            text-shadow: 0 0 30px #8e44ad;
             margin-bottom: 5px;
             letter-spacing: 5px;
+            color: #fff;
         }
 
         .status-container {
@@ -127,6 +173,7 @@
             border-radius: 20px;
             margin-bottom: 20px;
             backdrop-filter: blur(5px);
+            border: 1px solid rgba(187, 134, 252, 0.2);
         }
 
         .status-dot {
@@ -145,37 +192,91 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
         }
 
-        .ip-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 18px 40px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: inline-block;
-            margin-top: 10px;
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .ip-box:hover { background: rgba(74, 144, 226, 0.2); transform: scale(1.1); border-color: #4a90e2; }
+        .ip-box {
+            background: rgba(142, 68, 173, 0.1);
+            padding: 15px 35px;
+            border-radius: 50px;
+            border: 1px solid rgba(187, 134, 252, 0.2);
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ip-box:hover { 
+            background: rgba(142, 68, 173, 0.3); 
+            transform: scale(1.05); 
+            border-color: #bb86fc;
+        }
+
+        .shop-btn {
+            background: #bb86fc;
+            color: #0d0a1a;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(187, 134, 252, 0.3);
+        }
+
+        .shop-btn:hover {
+            transform: scale(1.05) translateY(-3px);
+            background: #fff;
+            box-shadow: 0 0 30px rgba(187, 134, 252, 0.6);
+        }
+
+        .rules-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            border: 1px solid rgba(187, 134, 252, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .rules-btn:hover {
+            background: rgba(187, 134, 252, 0.2);
+            transform: scale(1.05) translateY(-3px);
+            border-color: #bb86fc;
+        }
 
         .monitor-section {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             padding: 40px;
             border-radius: 30px;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(187, 134, 252, 0.1);
             margin: 40px 0;
             animation: fadeIn 2s ease-out;
         }
 
         .search-box { margin: 25px 0; display: flex; justify-content: center; gap: 10px; }
         .search-box input {
-            padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(187, 134, 252, 0.2);
             background: rgba(0,0,0,0.3); color: white; width: 250px; outline: none;
         }
 
         .check-btn {
-            padding: 12px 25px; background: #4a90e2; border: none; border-radius: 12px;
+            padding: 12px 25px; background: #8e44ad; border: none; border-radius: 12px;
             color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
 
@@ -185,30 +286,47 @@
         }
 
         .player-card {
-            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;
+            background: rgba(142, 68, 173, 0.1); padding: 10px; border-radius: 10px;
             display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
+            border: 1px solid rgba(187, 134, 252, 0.1);
         }
 
         .player-head { width: 24px; height: 24px; border-radius: 4px; }
 
         .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding-bottom: 100px; }
-        .card { background: rgba(20, 20, 30, 0.7); padding: 40px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); transition: 0.4s ease; backdrop-filter: blur(15px); }
-        .card:hover { transform: translateY(-15px); border-color: #4a90e2; }
+        .card { 
+            background: rgba(20, 15, 30, 0.7); 
+            padding: 40px; 
+            border-radius: 25px; 
+            border: 1px solid rgba(187, 134, 252, 0.05); 
+            transition: 0.4s ease; 
+            backdrop-filter: blur(15px); 
+        }
+        .card:hover { transform: translateY(-15px); border-color: #bb86fc; }
 
         .btn { display: inline-block; margin-top: 20px; padding: 15px 35px; border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s; }
         .btn-discord { background: #5865F2; color: white; }
         .btn-telegram { background: #0088cc; color: white; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #4a90e2; border-radius: 10px; }
+        
+        .main-footer {
+            width: 100%; padding: 40px 0; text-align: center; margin-top: 50px;
+            background: linear-gradient(to bottom, transparent, rgba(142, 68, 173, 0.1));
+            display: flex; flex-direction: column; gap: 15px;
+        }
 
-        @media (max-width: 600px) { h1 { font-size: 3rem; } .search-box { flex-direction: column; align-items: center; } .search-box input { width: 80%; } }
+        .footer-link { color: rgba(187, 134, 252, 0.5); text-decoration: none; font-size: 0.85rem; transition: 0.3s; }
+        .footer-link:hover { color: #bb86fc; }
     </style>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
+
+<div id="copy-toast">
+    <i class="fas fa-check-circle"></i> IP адрес успешно скопирован!
+</div>
 
 <button class="menu-btn" onclick="toggleMenu()">
     <i class="fas fa-bars"></i> Меню
@@ -217,14 +335,18 @@
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
 <div class="sidebar" id="sidebar">
+    <a href="shop.html" class="menu-shop-btn">
+        <i class="fas fa-shopping-cart"></i> Магазин доната
+    </a>
+    
     <h2>Создатели</h2>
     
     <div class="creator-item">
        <img src="https://i.ibb.co.com/PZrFkYbf/skin-avatar.png" class="player-head" alt="head">
-        <div class="creator-info">
+       <div class="creator-info">
             <h4>Noryxon</h4>
             <p>Основатель</p>
-        </div>
+       </div>
     </div>
 
     <div class="creator-item">
@@ -244,15 +366,26 @@
             <div id="status-dot" class="status-dot"></div>
             <span id="status-text">Загрузка...</span>
         </div>
-        <h1>NORYXCUBE</h1>
-        <p style="font-size: 1.2rem; opacity: 0.8;">Мир, где твои идеи становятся реальностью</p>
-        <div class="ip-box" onclick="copyIP()">
-            <i class="fas fa-copy"></i> IP: <span id="server-ip">noryxcube.aternos.me</span>
+        <h1 id="main-title">NORYXCUBE</h1>
+        <p id="main-news" style="font-size: 1.2rem; opacity: 0.8; color: #bb86fc;">Мир, где твои идеи становятся реальностью</p>
+        
+        <div class="header-actions">
+            <div class="ip-box" onclick="copyIP()">
+                <i class="fas fa-copy"></i> IP: <span id="server-ip">noryxcube.aternos.me</span>
+            </div>
+            
+            <a href="shop.html" class="shop-btn">
+                <i class="fas fa-shopping-basket"></i> Перейти в магазин
+            </a>
+
+            <a href="https://docs.google.com/document/d/1g74FpTwvULp78JZGQTeQu3bLm4074VKHpSaGckMuRd4/" target="_blank" class="rules-btn" id="rules-link">
+                <i class="fas fa-file-alt"></i> Правила сервера
+            </a>
         </div>
     </header>
 
     <div class="monitor-section">
-        <h2>Мониторинг игроков</h2>
+        <h2 style="color: #bb86fc;">Мониторинг игроков</h2>
         <div id="search-result"></div>
         <div class="search-box">
             <input type="text" id="nickInput" placeholder="Введите ник игрока...">
@@ -278,11 +411,34 @@
     </div>
 </div>
 
+<footer class="main-footer">
+    <a href="https://t.me/noryxon" target="_blank" class="footer-link">
+        <i class="fas fa-headset" style="margin-right: 5px;"></i> Написать в поддержку
+    </a>
+    <span class="footer-link">NORYXLAB © 2024</span>
+</footer>
+
 <script>
     const SERVER_IP = "noryxcube.aternos.me"; 
     let currentPlayers = [];
 
-    // --- ФУНКЦИЯ МЕНЮ ---
+    // --- ФУНКЦИЯ СИНХРОНИЗАЦИИ С АДМИНКОЙ ---
+   function syncWithAdmin() {
+        const savedRules = localStorage.getItem('noryx_rules');
+        const savedNews = localStorage.getItem('noryx_news');
+        
+        if (savedRules) {
+            const rulesBtn = document.getElementById('rules-link');
+            if(rulesBtn) rulesBtn.href = savedRules;
+        }
+        if (savedNews) {
+            const newsText = document.getElementById('main-news');
+            if(newsText) newsText.innerText = savedNews;
+        }
+    }
+    // Запускаем проверку каждые 2 секунды, чтобы сайт обновлялся "на лету"
+    setInterval(syncWithAdmin, 2000);
+
     function toggleMenu() {
         document.getElementById('sidebar').classList.toggle('active');
         const overlay = document.getElementById('overlay');
@@ -327,11 +483,17 @@
 
     function copyIP() {
         const ipText = document.getElementById('server-ip').innerText;
-        navigator.clipboard.writeText(ipText);
-        alert('IP скопирован!');
+        const toast = document.getElementById('copy-toast');
+        
+        navigator.clipboard.writeText(ipText).then(() => {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        });
     }
 
-    // --- ФОНОВАЯ АНИМАЦИЯ ---
+    // --- ЧАСТИЦЫ ФОНА ---
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -347,58 +509,21 @@
             this.x += this.speedX; this.y += this.speedY;
             if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) this.reset();
         }
-        draw() { ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+        draw() { 
+            ctx.fillStyle = `rgba(187, 134, 252, ${this.alpha})`;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); 
+        }
     }
     function createParticles() { particles = []; for (let i = 0; i < 100; i++) particles.push(new Particle()); }
     function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
 
     window.addEventListener('resize', () => { initCanvas(); createParticles(); });
     initCanvas(); createParticles(); animate();
+    
+    // Инициализация
     updateServerData();
     setInterval(updateServerData, 30000);
+    syncWithAdmin(); // Проверяем настройки админки при загрузке
 </script>
-    <style>
-    .main-footer {
-        width: 100%;
-        padding: 40px 0;
-        text-align: center;
-        margin-top: 50px;
-        background: linear-gradient(to bottom, transparent, rgba(74, 144, 226, 0.05));
-        display: flex;
-        flex-direction: column;
-        gap: 15px; /* Расстояние между ссылками */
-    }
-
-    .footer-link {
-        color: rgba(255, 255, 255, 0.5);
-        text-decoration: none;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
-        display: inline-block;
-        letter-spacing: 0.5px;
-    }
-
-    .footer-link:hover {
-        color: #4a90e2;
-        transform: translateY(-2px);
-    }
-
-    .link-small {
-        font-size: 0.7rem;
-        opacity: 0.6;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-</style>
-
-<footer class="main-footer">
-    <a href="https://t.me/noryxon" target="_blank" class="footer-link">
-        <i class="fas fa-headset" style="margin-right: 5px;"></i> Написать в поддержку
-    </a>
-    
-    <target="_blank" class="footer-link link-small">
-        Кликабельно
-    </a>
-</footer>
 </body>
 </html>
