@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoryxCube Shop | Список привилегий</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="notifications.css">
+    <script src="notifications.js"></script>
+
+    <style>
+        :root {
+            --primary: #bb86fc;
+            --secondary: #8e44ad;
+            --bg: #0d0a1a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: white;
+            line-height: 1.6;
+            opacity: 0; 
+            transform: translateY(10px);
+            animation: pageReveal 1.2s ease forwards;
+            overflow-x: hidden;
+        }
+
+        @keyframes pageReveal { to { opacity: 1; transform: translateY(0); } }
+
+        .donate-item { opacity: 0; transform: translateY(30px); }
+        .donate-item.revealed { animation: itemFadeUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        @keyframes itemFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* Анимация пульсации для картинок */
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 8px var(--glow-color)); }
+            50% { filter: drop-shadow(0 0 18px var(--glow-color)); }
+            100% { filter: drop-shadow(0 0 8px var(--glow-color)); }
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        
+        header { text-align: center; margin-bottom: 50px; position: relative; }
+        .back-link {
+            position: absolute; left: 0; top: 0; z-index: 100;
+            text-decoration: none; color: white; background: rgba(255, 255, 255, 0.05);
+            padding: 10px 18px; border-radius: 10px; font-size: 0.9rem;
+            border: 1px solid rgba(187, 134, 252, 0.2); transition: var(--transition);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .back-link:hover { background: var(--primary); color: var(--bg); transform: translateX(-5px); }
+
+        h1 { font-size: 3rem; margin: 10px 0; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .donate-list { display: flex; flex-direction: column; gap: 20px; }
+
+        .donate-item {
+            background: var(--card-bg); border: 1px solid rgba(187, 134, 252, 0.1);
+            border-radius: 20px; padding: 25px; display: flex; align-items: center;
+            backdrop-filter: blur(10px); transition: var(--transition);
+        }
+        .donate-item:hover { border-color: var(--primary); background: rgba(187, 134, 252, 0.05); transform: scale(1.01); }
+
+        .donate-img { 
+            width: 85px; height: 85px; object-fit: contain; margin-right: 30px; 
+            border-radius: 12px; animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        .donate-info { flex-grow: 1; }
+        .donate-name { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin: 0; }
+        .donate-commands { font-size: 0.85rem; opacity: 0.6; margin: 10px 0 0 0; font-style: italic; }
+        
+        .features-list { list-style: none; padding: 0; margin: 12px 0; }
+        .features-list li { margin-bottom: 6px; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: #e0e0e0; }
+        .features-list i { color: var(--primary); font-size: 0.9rem; width: 20px; text-align: center; }
+        .features-list b { color: #fff; }
+
+        .period-selector {
+            display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-right: 25px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .period-btn {
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+            transition: var(--transition); border: none; background: transparent; color: white; opacity: 0.6;
+        }
+        .period-btn.active { background: var(--secondary); color: white; opacity: 1; box-shadow: 0 4px 10px rgba(142, 68, 173, 0.4); }
+
+        .donate-action { text-align: right; min-width: 150px; }
+        .price-display { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; display: block; }
+        .buy-btn { background: white; color: var(--bg); border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: var(--transition); }
+        .buy-btn:hover { background: var(--primary); transform: translateY(-2px); }
+
+        @media (max-width: 768px) {
+            .donate-item { flex-direction: column; text-align: center; }
+            .donate-img { margin: 0 0 20px 0; }
+            .period-selector { margin: 20px 0; justify-content: center; }
+            .donate-action { text-align: center; width: 100%; }
+            .features-list li { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="container">
+    <header>
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Вернуться назад</a>
+        <p style="opacity: 0.5; letter-spacing: 2px; margin-top: 40px;">МАГАЗИН СЕРВЕРА</p>
+        <h1>NORYXCUBE SHOP</h1>
+    </header>
+
+    <div class="donate-list">
+
+        <div class="donate-item">
+            <img src="https://media.istockphoto.com/id/1790943481/ru/%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%BD%D0%B0%D1%8F/3d-%D1%84%D0%B8%D0%BE%D0%BB%D0%B5%D1%82%D0%BE%D0%B2%D0%B0%D1%8F-%D0%B1%D1%83%D0%BA%D0%B2%D0%B0-n-%D1%81-%D0%B3%D0%BB%D1%8F%D0%BD%D1%86%D0%B5%D0%B2%D0%BE%D0%B9-%D0%BF%D0%BE%D0%B2%D0%B5%D1%80%D1%85%D0%BD%D0%BE%D1%81%D1%82%D1%8C%D1%8E-%D0%BD%D0%B0-%D1%84%D0%B8%D0%BE%D0%BB%D0%B5%D1%82%D0%BE%D0%B2%D0%BE%D0%BC-%D1%84%D0%BE%D0%BD%D0%B5.jpg?s=612x612&w=0&k=20&c=MNOFo7lrVAJbr-pF4CyUXn97qM0RKaYLlgH_TRSjWVo=" 
+                 class="donate-img" style="--glow-color: #bb86fc;">
+            <div class="donate-info">
+                <p class="donate-name" id="item1-name">NOVA</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-bolt"></i> Префикс <span style="color:#bb86fc">[Nova]</span></li>
+                    <li><i class="fas fa-hammer"></i> Виртуальный верстак <b>/craft</b></li>
+                    <li><i class="fas fa-utensils"></i> Утолить голод <b>/feed</b></li>
+                    <li><i class="fas fa-home"></i> <b>3 точки дома</b> вместо одной</li>
+                    <li><i class="fas fa-hat-wizard"></i> Надеть предмет на голову <b>/hat</b></li>
+                </ul>
+                <p class="donate-commands">Уникальный набор: /kit Nova (раз в 48 часов)</p>
+            </div>
+            <div class="period-selector">
+                <button class="period-btn active" onclick="setPeriod('item1', 320, 'месяц', this)">Месяц</button>
+                <button class="period-btn" onclick="setPeriod('item1', 648, 'навсегда', this)">Навсегда</button>
+            </div>
+            <div class="donate-action">
+                <span class="price-display" id="item1-price">320 ₸</span>
+                <button class="buy-btn" onclick="checkout('item1')">Купить</button>
+            </div>
+        </div>
+
+        <div class="donate-item">
+            <img src="https://img.freepik.com/premium-photo/letter-o-alphabet-symbol-space-letter-night-sky-letter_559531-12512.jpg" 
+                 class="donate-img" style="--glow-color: #2416f5;">
+            <div class="donate-info">
+                <p class="donate-name" id="item2-name">Overlord</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-bolt"></i> Префикс <span style="color:#2416f5">[Overlord]</span></li>
+                    <li><i class="fas fa-star"></i> Все возможности ранга <b>Nova</b></li>
+                    <li><i class="fas fa-radar"></i> Поиск игроков рядом <b>/near</b></li>
+                    <li><i class="fas fa-box-open"></i> Эндер-сундук командой <b>/ec</b></li>
+                    <li><i class="fas fa-undo"></i> Вернуться на место смерти <b>/back</b></li>
+                    <li><i class="fas fa-wrench"></i> Починка предметов <b>/fix</b></li>
+                    <li><i class="fas fa-home"></i> <b>4 точки дома</b></li>
+                </ul>
+                <p class="donate-commands">Уникальный набор: /kit Overlord (раз в 48 часов)</p>
+            </div>
+            <div class="period-selector">
+                <button class="period-btn active" onclick="setPeriod('item2', 849, 'месяц', this)">Месяц</button>
+                <button class="period-btn" onclick="setPeriod('item2', 1700, 'навсегда', this)">Навсегда</button>
+            </div>
+            <div class="donate-action">
+                <span class="price-display" id="item2-price">849 ₸</span>
+                <button class="buy-btn" onclick="checkout('item2')">Купить</button>
+            </div>
+        </div>
+
+        <div class="donate-item">
+            <img src="https://yt3.googleusercontent.com/ytc/AIdro_k4zT7Io7D56tPqbPljW4dXBSnGwaR6DTeSsR6qW4s8kw=s900-c-k-c0x00ffffff-no-rj" 
+                 class="donate-img" style="--glow-color: #ff0000;">
+            <div class="donate-info">
+                <p class="donate-name" id="item3-name">Chapman</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-bolt"></i> Префикс <span style="color:#ff0000">[Chapman]</span></li>
+                    <li><i class="fas fa-crown"></i> Все возможности ранга <b>Overlord</b></li>
+                    <li><i class="fas fa-feather"></i> Режим полета <b>/fly</b></li>
+                    <li><i class="fas fa-tools"></i> Починить всё сразу <b>/fix all</b></li>
+                    <li><i class="fas fa-eye"></i> Просмотр чужих инвентарей <b>/invsee</b></li>
+                    <li><i class="fas fa-home"></i> <b>10 точек дома</b></li>
+                    <li><i class="fas fa-sun"></i> Личное время суток <b>/ptime</b></li>
+                </ul>
+                <p class="donate-commands">Уникальный набор: /kit Chapman (раз в 48 часов)</p>
+            </div>
+            <div class="period-selector">
+                <button class="period-btn active" onclick="setPeriod('item3', 2500, 'месяц', this)">Месяц</button>
+                <button class="period-btn" onclick="setPeriod('item3', 4000, 'навсегда', this)">Навсегда</button>
+            </div>
+            <div class="donate-action">
+                <span class="price-display" id="item3-price">2500 ₸</span>
+                <button class="buy-btn" onclick="checkout('item3')">Купить</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Синхронизация с админкой
+    function syncWithAdmin() {
+        const shopData = JSON.parse(localStorage.getItem('noryx_shop') || '{}');
+        for (let i = 1; i <= 3; i++) {
+            const data = shopData['item' + i];
+            if (data) {
+                const nameEl = document.getElementById(`item${i}-name`);
+                const priceEl = document.getElementById(`item${i}-price`);
+                if (nameEl && data.name) nameEl.innerText = data.name;
+                if (priceEl && data.price) priceEl.innerText = data.price + " ₸";
+            }
+        }
+    }
+    setInterval(syncWithAdmin, 2000);
+    syncWithAdmin();
+
+    function setPeriod(itemId, price, period, btn) {
+        document.getElementById(itemId + '-price').innerText = price + ' ₸';
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (window.showToast) showToast(`Выбран период: ${period}`, 'fa-clock');
+    }
+
+    function checkout(itemId) {
+        const name = document.getElementById(itemId + '-name').innerText;
+        const price = document.getElementById(itemId + '-price').innerText;
+        const discordInvite = "https://discord.gg/ТВОЯ_ССЫЛКА";
+
+        // Лог для админки
+        const logs = localStorage.getItem('admin_logs') || "";
+        localStorage.setItem('admin_logs', logs + `> [${new Date().toLocaleTimeString()}] Покупка: ${name} (${price})\n`);
+
+        if (window.showToast) {
+            showToast(`Перенаправляем в Discord для покупки ${name}...`, 'fa-discord');
+        }
+
+        setTimeout(() => {
+            window.open(discordInvite, '_blank');
+        }, 2000);
+    }
+
+    // Анимации появления
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.donate-item').forEach((item, i) => {
+            setTimeout(() => item.classList.add('revealed'), 400 + (i * 200));
+        });
+    });
+
+    // Фоновые частицы
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function initCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5; this.speedX = Math.random() * 0.4 - 0.2;
+            this.speedY = Math.random() * 0.4 - 0.2; this.alpha = Math.random();
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) this.reset();
+        }
+        draw() { 
+            ctx.fillStyle = `rgba(187, 134, 252, ${this.alpha})`;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); 
+        }
+    }
+    function createParticles() { particles = []; for (let i = 0; i < 70; i++) particles.push(new Particle()); }
+    function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+    window.addEventListener('resize', () => { initCanvas(); createParticles(); });
+    initCanvas(); createParticles(); animate();
+</script>
+</body>
+</html>

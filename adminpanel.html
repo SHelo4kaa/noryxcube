@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<link rel="stylesheet" href="notifications.css">
+<script src="notifications.js"></script>
+    <meta charset="UTF-8">
+    <title>NORYX | Super Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --accent: #bb86fc; --bg: #090712; --card: #141121; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: none; }
+        .sidebar { width: 260px; background: var(--card); height: 100vh; position: fixed; padding: 20px; border-right: 1px solid rgba(187,134,252,0.2); }
+        .content { margin-left: 300px; padding: 40px; max-width: 900px; }
+        .card { background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; border: 1px solid rgba(187,134,252,0.1); margin-bottom: 20px; }
+        input, textarea, select { width: 100%; padding: 12px; background: #1a162b; border: 1px solid #333; color: white; border-radius: 8px; margin: 8px 0; box-sizing: border-box; font-size: 14px; }
+        .btn { background: var(--accent); color: #0d0a1a; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
+        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        .console { background: #000; color: #0f0; padding: 15px; font-family: monospace; height: 120px; overflow-y: auto; font-size: 12px; border-radius: 10px; border: 1px solid #333; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .online { background: #2ed57322; color: #2ed573; border: 1px solid #2ed573; }
+        .player-tag { display: inline-block; background: rgba(187,134,252,0.1); padding: 4px 10px; border-radius: 6px; margin: 3px; font-size: 12px; border: 1px solid rgba(187,134,252,0.2); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        h3 { margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 style="color:var(--accent)">NORYX HUB</h2>
+    <p style="opacity:0.5; font-size:12px">Система управления сайтами</p>
+    <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
+    <button class="btn" style="background:#333; color:white" onclick="window.open('index.html')"><i class="fas fa-external-link-alt"></i> Главная</button>
+    <button class="btn" style="background:#333; color:white" onclick="window.open('shop.html')"><i class="fas fa-shopping-cart"></i> Магазин</button>
+    <div style="margin-top: 30px;">
+        <div id="mon-stat">Мониторинг...</div>
+    </div>
+</div>
+
+<div class="content">
+    <h1>Управление проектом</h1>
+
+    <div class="grid">
+        <div class="card">
+            <h3><i class="fas fa-server"></i> Мониторинг</h3>
+            <div id="srv-details">Загрузка данных сервера...</div>
+            <div id="srv-players" style="margin-top:10px; max-height: 100px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-terminal"></i> Логи</h3>
+            <div class="console" id="admin-log">> Система запущена...</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-edit"></i> Контент главного сайта</h3>
+        <div class="grid">
+            <div>
+                <label>Текст новости:</label>
+                <textarea id="newsText" rows="3"></textarea>
+            </div>
+            <div>
+                <label>Ссылка на правила:</label>
+                <input type="text" id="rulesUrl">
+                <button class="btn" onclick="saveLanding()">Обновить лендинг</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-store"></i> Товары магазина</h3>
+        <div class="grid">
+            <div>
+                <label>Выберите товар:</label>
+                <select id="item-select">
+                    <option value="item1">Товар #1</option>
+                    <option value="item2">Товар #2</option>
+                    <option value="item3">Товар #3</option>
+                </select>
+            </div>
+            <div>
+                <label>Название:</label>
+                <input type="text" id="item-name" placeholder="Напр: VIP Статус">
+                <label>Цена (₽):</label>
+                <input type="number" id="item-price" placeholder="99">
+                <button class="btn" onclick="saveShop()">Обновить товар</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PASS = "4v6575fGg866fF6fF7yg7UjhVUY6u7UUOGU$#&&guGG5%^*ug";
+    const IP = "noryxcube.aternos.me";
+
+    // Вход
+    if (prompt("Пароль администратора:") !== PASS) {
+        window.location.href = "purple.html";
+    } else {
+        document.body.style.display = "block";
+        loadInitialData();
+        startMonitoring();
+    }
+
+    function loadInitialData() {
+        document.getElementById('rulesUrl').value = localStorage.getItem('noryx_rules') || "";
+        document.getElementById('newsText').value = localStorage.getItem('noryx_news') || "";
+    }
+
+    async function startMonitoring() {
+        const details = document.getElementById('srv-details');
+        const playersDiv = document.getElementById('srv-players');
+        try {
+            const res = await fetch(`https://api.mcsrvstat.us/2/${IP}`);
+            const data = await res.json();
+            if(data.online) {
+                details.innerHTML = `<span class="status-badge online">ONLINE</span>  <b>${data.players.online} / ${data.players.max}</b>`;
+                playersDiv.innerHTML = data.players.list ? data.players.list.map(p => `<span class="player-tag">${p}</span>`).join('') : "Игроков нет";
+            } else {
+                details.innerHTML = `<span class="status-badge" style="color:#ff4757; border:1px solid #ff4757">OFFLINE</span>`;
+                playersDiv.innerHTML = "";
+            }
+        } catch(e) { details.innerText = "Ошибка API"; }
+        setTimeout(startMonitoring, 15000);
+    }
+
+    function saveLanding() {
+        localStorage.setItem('noryx_rules', document.getElementById('rulesUrl').value);
+        localStorage.setItem('noryx_news', document.getElementById('newsText').value);
+        addLog("Лендинг обновлен");
+        alert("Готово! Изменения применены.");
+    }
+
+    function saveShop() {
+        const id = document.getElementById('item-select').value;
+        const name = document.getElementById('item-name').value;
+        const price = document.getElementById('item-price').value;
+        
+        if(!name || !price) return alert("Заполните данные!");
+
+        const shopData = JSON.parse(localStorage.getItem('noryx_shop') || '{}');
+        shopData[id] = { name, price };
+        localStorage.setItem('noryx_shop', JSON.stringify(shopData));
+        
+        addLog(`Товар ${id} изменен на ${name} (${price}₽)`);
+        alert("Магазин обновлен!");
+    }
+
+    function addLog(msg) {
+        const l = document.getElementById('admin-log');
+        l.innerHTML += `<br>> [${new Date().toLocaleTimeString()}] ${msg}`;
+        l.scrollTop = l.scrollHeight;
+    }
+</script>
+</body>
+</html>
